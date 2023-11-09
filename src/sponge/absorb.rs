@@ -65,7 +65,7 @@ pub trait Absorb {
         }
     }
 
-    /// Specifies the conversion into a list of field elements for a batch. Append the list to `dest`.
+    /// Specifies the conversion into a list of field elements for a batch. Return the list as `Vec`.
     fn batch_to_sponge_field_elements_as_vec<F: PrimeField>(batch: &[Self]) -> Vec<F>
     where
         Self: Sized,
@@ -229,10 +229,8 @@ impl Absorb for isize {
 
 impl<CF: PrimeField, P: TEModelParameters<BaseField = CF>> Absorb for TEAffine<P> {
     fn to_sponge_bytes(&self, dest: &mut Vec<u8>) {
-        self.to_field_elements()
-            .unwrap()
-            .serialize_compressed(dest)
-            .unwrap()
+        dest.append(&mut self.x.into_bigint().to_bytes_le());
+        dest.append(&mut self.y.into_bigint().to_bytes_le());
     }
 
     fn to_sponge_field_elements<F: PrimeField>(&self, dest: &mut Vec<F>) {
@@ -242,10 +240,9 @@ impl<CF: PrimeField, P: TEModelParameters<BaseField = CF>> Absorb for TEAffine<P
 
 impl<CF: PrimeField, P: SWModelParameters<BaseField = CF>> Absorb for SWAffine<P> {
     fn to_sponge_bytes(&self, dest: &mut Vec<u8>) {
-        self.to_field_elements()
-            .unwrap()
-            .serialize_compressed(dest)
-            .unwrap()
+        dest.append(&mut self.x.into_bigint().to_bytes_le());
+        dest.append(&mut self.y.into_bigint().to_bytes_le());
+        dest.push(self.infinity.into());
     }
 
     fn to_sponge_field_elements<F: PrimeField>(&self, dest: &mut Vec<F>) {
